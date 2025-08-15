@@ -33,17 +33,15 @@ class SecurityPlusPlugin: FlutterPlugin, MethodCallHandler {
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "security_plus")
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "anto")
         channel.setMethodCallHandler(this)
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            "isRooted" -> result.success(isRooted())
-            "isEmulator" -> result.success(isEmulator())
-            "isOnExternalStorage" -> result.success(isOnExternalStorage(context))
-            "isDevelopmentModeEnable" -> result.success(developmentModeCheck(context))
-            "isMockLocationEnabled" -> result.success(isMockLocationEnabled(context))
+            "ir" -> result.success(isRooted())
+            "ie" -> result.success(isEmulator())
+            "id" -> result.success(developmentModeCheck(context))
             else -> result.notImplemented()
         }
     }
@@ -51,7 +49,6 @@ class SecurityPlusPlugin: FlutterPlugin, MethodCallHandler {
     fun isRooted(): Boolean {
         val rootBeer = RootBeer(context)
         val isRooted = rootBeer.isRooted
-        println("isRooted: ${isRooted || checkFridaLibraries() || checkFridaProcesses() || checkSuspiciousFiles()}")
         return isRooted || checkFridaLibraries() || checkFridaProcesses() || checkSuspiciousFiles()
     }
 
@@ -151,28 +148,6 @@ class SecurityPlusPlugin: FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private fun isSuperuserAppInstalled(context: Context): Boolean {
-        val suspiciousPackages = arrayOf(
-            "eu.chainfire.supersu",
-            "com.koushikdutta.superuser",
-            "com.thirdparty.superuser",
-            "com.topjohnwu.magisk",
-            "com.kingroot.kinguser",
-            "com.kingo.root",
-            "com.smedialink.oneclickroot",
-            "com.zhiqupk.root.global",
-            "com.alephzain.framaroot"
-        )
-        
-        val packages: List<ApplicationInfo> = context.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-        for (packageInfo in packages) {
-            if (suspiciousPackages.any { packageInfo.packageName.equals(it, ignoreCase = true) }) {
-                return true
-            }
-        }
-        return false
-    }
-
     private fun isRunningInAPKMode(): Boolean {
         var cmdlineReader: BufferedReader? = null
         try {
@@ -214,71 +189,6 @@ class SecurityPlusPlugin: FlutterPlugin, MethodCallHandler {
         } else false
     }
     
-    fun isMockLocationEnabled(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // checking if the app have mock location permission
-            val appOpsManager = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-            try {
-                val isMockLocationEnabled = appOpsManager.checkOp(AppOpsManager.OPSTR_MOCK_LOCATION, Process.myUid(), context.packageName) == AppOpsManager.MODE_ALLOWED
-                if (isMockLocationEnabled) {
-                    return true
-                }
-            } catch (e: Exception) {
-                // ignore
-            }
-        } else {
-            // checking if mock location enabled in developer options
-            try {
-                val isMockLocationEnabled = !Settings.Secure.getString(context.contentResolver, Settings.Secure.ALLOW_MOCK_LOCATION).isNullOrEmpty()
-                if (isMockLocationEnabled) {
-                    return true
-                }
-            } catch (e: Settings.SettingNotFoundException) {
-                // ignore
-            }
-        }
-    
-        // checking on any other app
-        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val providers = locationManager.allProviders
-        for (provider in providers) {
-            if (LocationManager.GPS_PROVIDER == provider || LocationManager.NETWORK_PROVIDER == provider) {
-                if (locationManager.isProviderEnabled(provider)) {
-                    // gps or network enabled so we check if its providing mock location
-                    val location = locationManager.getLastKnownLocation(provider)
-                    if (location != null && location.isFromMockProvider) {
-                        return true
-                    }
-                }
-            }
-        }
-    
-        return false
-    }
-    
-    private fun isOnExternalStorage(context: Context): Boolean {
-        val pm: PackageManager = context.packageManager
-        try {
-            val pi: PackageInfo = pm.getPackageInfo(context.packageName, 0)
-            val ai: ApplicationInfo = pi.applicationInfo ?: return false
-            return ai.flags and ApplicationInfo.FLAG_EXTERNAL_STORAGE === ApplicationInfo.FLAG_EXTERNAL_STORAGE
-        } catch (e: PackageManager.NameNotFoundException) {
-            // ignore
-        }
-
-        try {
-            val filesDir: String = context.filesDir.absolutePath
-            if (filesDir.startsWith("/data/")) {
-                return false
-            } else if (filesDir.contains("/mnt/") || filesDir.contains("/sdcard/")) {
-                return true
-            }
-        } catch (e: Throwable) {
-            // ignore
-        }
-        return false
-    }
-
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
     }
