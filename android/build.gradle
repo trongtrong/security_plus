@@ -1,4 +1,4 @@
-group 'com.absolutions.security_plus'
+group 'com.absolutions.anto'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -25,7 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    namespace 'com.absolutions.security_plus'
+    namespace 'com.absolutions.anto'
     compileSdkVersion 31
 
     compileOptions {

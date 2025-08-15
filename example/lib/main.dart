@@ -31,17 +31,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _checkPermissionsAndInitialize() async {
-    if (Platform.isAndroid) {
-      final locationStatus = await Permission.location.request();
-      if (locationStatus.isGranted) {
-        await _initializeSecurityChecks();
-      } else {
-        log('Location permission denied');
-        // Handle permission denied case
-      }
-    } else {
-      await _initializeSecurityChecks();
-    }
+    await _initializeSecurityChecks();
   }
 
   Future<void> _initializeSecurityChecks() async {
@@ -130,10 +120,13 @@ class _MyAppState extends State<MyApp> {
             children: [
               Text('Device is ${_isRooted ? "" : "not"} rooted'),
               if (Platform.isAndroid) ...[
-                Text('App is ${_isExtStorage ? "" : "not"} on external storage'),
+                Text(
+                    'App is ${_isExtStorage ? "" : "not"} on external storage'),
                 Text('Device is ${_isEmulator ? "" : "not"} an emulator'),
                 Text('Device is ${_isDev ? "" : "not"} in development mode'),
-                Text('Mock location is ${_isMockLocationEnabled ? "enabled" : "disabled"}'),
+                Text('Mock location is ${_isMockLocationEnabled
+                    ? "enabled"
+                    : "disabled"}'),
               ],
               ElevatedButton(
                 onPressed: _checkPermissionsAndInitialize,

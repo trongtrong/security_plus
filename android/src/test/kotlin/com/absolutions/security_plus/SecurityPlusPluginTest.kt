@@ -1,4 +1,4 @@
-package com.absolutions.security_plus
+package com.absolutions.anto
 
 import android.content.Context
 import android.content.pm.ApplicationInfo

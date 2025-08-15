@@ -37,7 +37,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.absolutions.security_plus
+        package: com.absolutions.anto
         pluginClass: SecurityPlusPlugin
       ios:
         pluginClass: SecurityPlusPlugin
